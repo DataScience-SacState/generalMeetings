@@ -1,0 +1,148 @@
+---
+title: "generalMeetin4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+# General Meeting 4
+## September, 23 2016
+ Last week we had a talk on git/github which can be found here:
+# This week our talk will be on regression
+
+Regression is the simplest algorithm for machine learning out there and its roots can often be found in the most complex of machine learnging algorithms.
+
+Here is how to do the most basic regression algorithm: Single Variable Linear Regression.
+
+```{r, include=FALSE}
+library(ggplot2)
+library(dplyr)
+```
+### First i'll make some sample data
+### So that we get that same numbers every time ill set a seed
+```{r}
+set.seed(42069)
+x = 1:20
+slope = runif(1, max = 5)
+yInterc = runif(1, max =10)
+y = rnorm(20, sd = slope) + slope*x + yInterc
+
+```
+I need to put the x and y variables into a 
+
+# D  A  T  A  F  R  A  M  E
+# A
+# T
+# A
+# F
+# R
+# A
+# M
+# E
+then I can plot it.
+```{r}
+coords <- data.frame(x = x, y =y)
+coords %>%
+  ggplot(aes(x,y)) +
+    geom_point()
+```
+
+We can see that y has some linear correlation with x, but for most real world problems we wouldn't know the exact slope of this relationship. 
+
+## Linear regression will let us find the slope and y-intercept.
+
+More generally, say we have two variables X and Y in our training data set. We can regress y onto x by fitting the model
+
+Y ~ ß0 + ß1*X
+
+where ß0 and ß1 are the y-intecept and slope of a line, respectively, and are both unknown. Together ß0 and ß1 are known as the model coefficients or parameters.
+
+Once the model coefficients are known we can predict the future value of Y called Yhat on any new X values x with:
+
+Yhat = ß0 + ß1x
+
+## Estimating the coefficients
+
+We need to find the coefficients that will produce a line that is as close as possible to the data points. To estimate the coefficients we need to have a way of measuring closeness. The most common approach to measuring closeness is minimizing the least squares criterion.
+
+Let:
+
+Yhat[i] = ß0 + ß1*x[i] be the prediction for Y based on the ith value of X. Then the error, called the residual in regression, is e[i] = Y[i]-Yhat[i].
+
+The least squares criterion is minimizing this value
+
+e[1]^2 + e[2]^2 + ... + e[n]^2
+
+called the residual sum of squares. 
+
+
+```{r}
+#function to calculate the residual sum of squares
+RSS = function(X, Y, B0, B1){
+  squaredSum = 0
+  for(i in X){
+    ithResidual = (Y[i] - B0 - B1*X[i])^2
+    squaredSum = squaredSum + ithResidual
+  }
+  return(squaredSum)
+}
+```
+
+We won't really need the function though.
+
+Mathematically we can rewrite RSS to be equal to
+
+(Y[1]-ß0-ß1\*x[1])^2 + (Y[2]-ß0-ß1\*x[2])^2 + ... + (Y[n]-ß0-ß1\*x[n])^2
+
+In calculus to find the minimum of a function you take the derivative and solve for zero so thats how we'll find the correct coeffecients.
+
+### hopefully i can do this on the board
+
+
+```{r}
+findB1 = function(x, y){
+  numerator = 0
+  denominator = 0
+  xMean = mean(x)
+  yMean = mean(y)
+  for(i in 1:length(x)){
+    ithNumerator = (x[i] - xMean)*(y[i] - yMean)
+    ithDenominator = (x[i] - xMean)^2
+    numerator = numerator + ithNumerator
+    denominator = denominator + ithDenominator
+  }
+  return(numerator/denominator)
+}
+
+findB0 = function(x,y,B1){
+  yMean = mean(y)
+  xMean = mean(x)
+  return(yMean - B1*xMean)
+}
+B1 = findB1(x,y)
+B0 = findB0(x,y,B1)
+B1; B0
+```
+
+```{r}
+coords %>%
+  ggplot(aes(x=x,y=y)) + 
+    geom_point(size = 1, color = "red") + 
+    geom_abline(slope = B1, intercept = B0)
+```
+
+Our residual sum of squares is
+
+```{r}
+RSS(x,y,B0,B1)
+```
+
+
+Our error on B1 is 
+```{r}
+B1-slope
+```
